@@ -29,7 +29,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.svelte-tauri.template",
+      "identifier": "netdata-monitor",
       "longDescription": "",
       "macOS": {
         "entitlements": null,

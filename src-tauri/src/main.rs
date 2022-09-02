@@ -3,30 +3,62 @@
     windows_subsystem = "windows"
 )]
 
-use sha2::{Digest, Sha256};
+use std::{
+    process::{Child, Command},
+    sync::Mutex,
+};
+use tauri::State;
 use tauri_plugin_store::PluginBuilder;
-// use tauri::{Manager, PhysicalSize, Size};
+
+struct TunnelConnection {
+    connection: Mutex<Option<Child>>,
+}
+impl TunnelConnection {
+    pub fn tunnel(&mut self) -> String {
+        let free_local_port = 19999;
+
+        self.connection = Mutex::new(Some(
+            Command::new("ssh")
+                .args(["-L", "19999:localhost:19999", "-N", "ubuntu@jet-black.xyz"])
+                .spawn()
+                .unwrap(),
+        ));
+
+        free_local_port.to_string()
+    }
+
+    pub fn close(&mut self) -> () {
+        let _ = self
+            .connection
+            .lock()
+            .unwrap()
+            .take()
+            .unwrap()
+            .kill()
+            .unwrap();
+    }
+}
 
 fn main() {
     tauri::Builder::default()
         .plugin(PluginBuilder::default().build())
         .plugin(tauri_plugin_window_state::Builder::default().build())
-        .invoke_handler(tauri::generate_handler![called_from_js, hash256sum])
+        .manage(TunnelConnection {
+            connection: Mutex::new(None),
+        })
+        .invoke_handler(tauri::generate_handler![tunnel])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
 
 #[tauri::command]
-fn called_from_js() -> String {
-    // The print macro is problematic in release environment (crashes the application if not ran from a terminal)
-    // println!("Returning from tauri");
-    "Hi from Tauri".to_owned()
-}
-
-#[tauri::command]
-fn hash256sum(hash_input: String) -> String {
-    let mut hasher = Sha256::new();
-    hasher.update(hash_input.as_bytes());
-    let result = hasher.finalize();
-    format!("{:X}", result)
+fn tunnel(
+    user: String,
+    host: String,
+    port: String,
+    interface: Option<String>,
+    state: State<'_, TunnelConnection>,
+) -> String {
+    *state.connection;
+    format!("http://localhost:19999/")
 }

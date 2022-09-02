@@ -11,41 +11,14 @@ use tauri::State;
 use tauri_plugin_store::PluginBuilder;
 
 struct TunnelConnection {
-    connection: Mutex<Option<Child>>,
-}
-impl TunnelConnection {
-    pub fn tunnel(&mut self) -> String {
-        let free_local_port = 19999;
-
-        self.connection = Mutex::new(Some(
-            Command::new("ssh")
-                .args(["-L", "19999:localhost:19999", "-N", "ubuntu@jet-black.xyz"])
-                .spawn()
-                .unwrap(),
-        ));
-
-        free_local_port.to_string()
-    }
-
-    pub fn close(&mut self) -> () {
-        let _ = self
-            .connection
-            .lock()
-            .unwrap()
-            .take()
-            .unwrap()
-            .kill()
-            .unwrap();
-    }
+    connection: Option<Child>,
 }
 
 fn main() {
     tauri::Builder::default()
         .plugin(PluginBuilder::default().build())
         .plugin(tauri_plugin_window_state::Builder::default().build())
-        .manage(TunnelConnection {
-            connection: Mutex::new(None),
-        })
+        .manage(Mutex::new(TunnelConnection { connection: None }))
         .invoke_handler(tauri::generate_handler![tunnel])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -57,8 +30,24 @@ fn tunnel(
     host: String,
     port: String,
     interface: Option<String>,
-    state: State<'_, TunnelConnection>,
+    state: State<'_, Mutex<TunnelConnection>>,
 ) -> String {
-    *state.connection;
-    format!("http://localhost:19999/")
+    let local_port = portpicker::pick_unused_port().expect("No free ports");
+
+    state.lock().unwrap().connection = Some(
+        Command::new("ssh")
+            .args([
+                "-L",
+                &format!(
+                    "{local_port}:{}:{port}",
+                    interface.unwrap_or("localhost".to_string())
+                ),
+                "-N",
+                &format!("{user}@{host}"),
+            ])
+            .spawn()
+            .unwrap(),
+    );
+
+    format!("http://localhost:{local_port}/")
 }

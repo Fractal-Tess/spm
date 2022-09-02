@@ -1,9 +1,9 @@
 <script lang="ts">
   import { fade } from 'svelte/transition';
 
-  import Header from '$lib/example/header/Header.svelte';
+  import Header from '$lib/header/Header.svelte';
   import Index from '$lib/Index.svelte';
-  import Footer from '$lib/example/footer/Footer.svelte';
+  import Footer from '$lib/footer/Footer.svelte';
 
   import { theme } from '$lib/stores/theme';
 

@@ -7,7 +7,7 @@ use std::{
     process::{Child, Command},
     sync::Mutex,
 };
-use tauri::State;
+use tauri::{Manager, RunEvent, State};
 use tauri_plugin_store::PluginBuilder;
 
 struct TunnelConnection {
@@ -15,39 +15,60 @@ struct TunnelConnection {
 }
 
 fn main() {
-    tauri::Builder::default()
+    let state = Mutex::new(TunnelConnection { connection: None });
+
+    let app = tauri::Builder::default()
         .plugin(PluginBuilder::default().build())
         .plugin(tauri_plugin_window_state::Builder::default().build())
-        .manage(Mutex::new(TunnelConnection { connection: None }))
-        .invoke_handler(tauri::generate_handler![tunnel])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .manage(state)
+        .invoke_handler(tauri::generate_handler![create_tunnel])
+        .build(tauri::generate_context!())
+        .unwrap();
+
+    app.run(|app_handle, e| match e {
+        RunEvent::ExitRequested { api: _, .. } => {
+            let connection = app_handle.state::<Mutex<TunnelConnection>>();
+            connection
+                .lock()
+                .unwrap()
+                .connection
+                .take()
+                .unwrap()
+                .kill()
+                .unwrap();
+        }
+        _ => {}
+    })
 }
 
 #[tauri::command]
-fn tunnel(
+fn create_tunnel(
     user: String,
     host: String,
     port: String,
     interface: Option<String>,
-    state: State<'_, Mutex<TunnelConnection>>,
-) -> String {
-    let local_port = portpicker::pick_unused_port().expect("No free ports");
-
-    state.lock().unwrap().connection = Some(
-        Command::new("ssh")
-            .args([
-                "-L",
-                &format!(
-                    "{local_port}:{}:{port}",
-                    interface.unwrap_or("localhost".to_string())
-                ),
-                "-N",
-                &format!("{user}@{host}"),
-            ])
-            .spawn()
-            .unwrap(),
-    );
-
-    format!("http://localhost:{local_port}/")
+    connection: State<'_, Mutex<TunnelConnection>>,
+) -> (String, bool) {
+    let mut tunnel_connection = connection.lock().unwrap();
+    match tunnel_connection.connection {
+        None => {
+            let local_port = portpicker::pick_unused_port().expect("No free ports");
+            tunnel_connection.connection = Some(
+                Command::new("ssh")
+                    .args([
+                        "-L",
+                        &format!(
+                            "{local_port}:{}:{port}",
+                            interface.unwrap_or("localhost".to_owned())
+                        ),
+                        "-N",
+                        &format!("{user}@{host}"),
+                    ])
+                    .spawn()
+                    .unwrap(),
+            );
+            (format!("http://localhost:{local_port}/"), true)
+        }
+        Some(_) => ("There is already a tunnel".to_owned(), false),
+    }
 }

@@ -12,7 +12,15 @@
   },
   "tauri": {
     "allowlist": {
-      "all": true
+      "all": false,
+      "window": {
+        "close": true,
+        "minimize": true,
+        "startDragging": true
+      },
+      "shell": {
+        "open": true
+      }
     },
     "bundle": {
       "active": true,
@@ -56,8 +64,9 @@
     "windows": [
       {
         "title": "Svelte-Tauri Template",
-        "width": 1200,
-        "height": 800,
+        "width": 700,
+        "height": 300,
+        "resizable": false,
         "fullscreen": false,
         "transparent": true,
         "decorations": false

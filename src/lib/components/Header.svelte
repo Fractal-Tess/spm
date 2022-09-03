@@ -1,20 +1,15 @@
 <script lang="ts">
-  import ThemeToggleIcon from '$lib/header/ThemeToggleIcon.svelte';
-  import { theme } from '$lib/stores/theme';
   import { appWindow } from '@tauri-apps/api/window';
 </script>
 
-<div
-  data-tauri-drag-region
-  class="h-12 bg-base-100 shadow-lg items-center justify-between flex"
->
-  <button
-    on:click={theme.toggleTheme}
-    class="hover:text-secondary ml-2"
-    aria-live="polite"
+<div data-tauri-drag-region class="h-12  items-center justify-between flex">
+  <div />
+
+  <h1
+    class="absolute left-1/2 -translate-x-1/2 select-none pointer-events-none text-secondary text-3xl font-extrabold"
   >
-    <ThemeToggleIcon cssClass={'w-8'} />
-  </button>
+    SSH port mapper
+  </h1>
 
   <div>
     <button

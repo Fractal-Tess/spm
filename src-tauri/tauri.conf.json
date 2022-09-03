@@ -7,7 +7,7 @@
     "distDir": "../dist"
   },
   "package": {
-    "productName": "svelte-tauri-template",
+    "productName": "ssh-port-mapper",
     "version": "0.1.0"
   },
   "tauri": {
@@ -37,7 +37,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "netdata-monitor",
+      "identifier": "com.ssh-port-mapper",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
@@ -48,7 +48,7 @@
       },
       "resources": [],
       "shortDescription": "",
-      "targets": "app",
+      "targets": "all",
       "windows": {
         "certificateThumbprint": null,
         "digestAlgorithm": "sha256",
@@ -63,7 +63,7 @@
     },
     "windows": [
       {
-        "title": "Svelte-Tauri Template",
+        "title": "SSH Port Mapper",
         "width": 700,
         "height": 300,
         "resizable": false,

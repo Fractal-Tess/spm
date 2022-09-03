@@ -12,9 +12,9 @@
   document.documentElement.setAttribute('data-theme', 'dark');
   document.documentElement.classList.value = 'dark';
 
-  let hasTunneled = true;
-  let success = true;
-  let message = 'http://localhost:17584/';
+  let hasTunneled = false;
+  let success = false;
+  let message = '';
   const createTunnel = async () => {
     hasTunneled = true;
     [message, success] = await invoke('create_tunnel', {

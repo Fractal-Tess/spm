@@ -10,7 +10,7 @@
 
   <a
     target="_blank"
-    href="https://github.com/Fractal-Tess/Svelte-Tauri"
+    href="https://github.com/Fractal-Tess/spm"
     class="border-b-2 border-secondary">GitHub</a
   >
 </div>
